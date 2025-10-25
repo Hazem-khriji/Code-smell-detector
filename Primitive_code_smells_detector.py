@@ -4,6 +4,7 @@ import tree_sitter_python as tspython
 from pathlib import Path
 from dataclasses import dataclass
 from typing import List, Dict
+import smell_detector
 
 
 @dataclass
@@ -17,39 +18,9 @@ class CodeSmell:
     details: Dict
 
 
-class CodeSmellDetector:
+class PrimitiveCodeSmellDetector(smell_detector.CodeSmellDetector):
     def __init__(self):
-        self.parser = Parser()
-        PY_LANGUAGE = Language(tspython.language())
-        self.parser.language= PY_LANGUAGE
-
-    def parse_file(self, file_path: str) -> tuple:
-        """Parse a Python file and return the tree and source code"""
-        with open(file_path, 'r', encoding='utf-8') as f:
-            source_code = f.read()
-
-        tree = self.parser.parse(bytes(source_code, 'utf8'))
-        return tree, source_code
-
-    def get_function_nodes(self, tree):
-        """Extract all function definition nodes from the tree"""
-        functions = []
-
-        def traverse(node):
-            if node.type == 'function_definition':
-                functions.append(node)
-            for child in node.children:
-                traverse(child)
-
-        traverse(tree.root_node)
-        return functions
-
-    def get_function_name(self, func_node):
-        """Extract function name from function node"""
-        for child in func_node.children:
-            if child.type == 'identifier':
-                return child.text.decode('utf8')
-        return 'unknown'
+        super().__init__()
 
     def count_lines(self, node):
         """Count non-empty lines in a node"""
@@ -199,7 +170,7 @@ def main():
     """Main entry point"""
     import sys
 
-    detector = CodeSmellDetector()
+    detector = PrimitiveCodeSmellDetector()
 
     # Example usage
     if len(sys.argv) < 2:
